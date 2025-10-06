@@ -1,6 +1,7 @@
 package net.nukebob.tetrismc.game.tetris;
 
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Identifier;
 import net.nukebob.tetrismc.TetrisMC;
 
@@ -24,10 +25,10 @@ public class Animation {
     }
 
     public void draw(DrawContext context) {
-        context.drawTexture(Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
-    }
+        context.drawTexture(RenderLayer::getGuiTextured, Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
+        }
 
     public void draw(DrawContext context, int x, int y) {
-        context.drawTexture(Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
+        context.drawTexture(RenderLayer::getGuiTextured, Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
     }
 }

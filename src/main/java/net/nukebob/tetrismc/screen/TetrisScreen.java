@@ -1,10 +1,7 @@
 package net.nukebob.tetrismc.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.navigation.GuiNavigation;
-import net.minecraft.client.gui.navigation.NavigationDirection;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -20,6 +17,7 @@ import net.nukebob.tetrismc.game.HighScores;
 import net.nukebob.tetrismc.game.tetris.Animation;
 import net.nukebob.tetrismc.game.tetris.mino.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -210,7 +208,7 @@ public class TetrisScreen extends Screen {
                             (nextMino instanceof Mino_L2 || nextMino instanceof Mino_Z1 ? Block.SIZE : (nextMino instanceof Mino_T ? Block.SIZE / 2 : 0)),
                     HEIGHT - (int) (Block.SIZE * 2.5f));
         }
-        float frameDuration = MinecraftClient.getInstance().getRenderTickCounter().getLastFrameDuration();
+        float frameDuration = MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks();
         currentMino.update(frameDuration*3);
         animation+=frameDuration*3;
     }
@@ -271,15 +269,22 @@ public class TetrisScreen extends Screen {
         if (paused) {
             upPressed = downPressed = leftPressed = rightPressed = spacePressed = false;
         }
+        float scale = switch (MinecraftClient.getInstance().options.getGuiScale().getValue()) {
+            case 4 -> 0.8f;
+            case 1 -> 3f;
+            case 2 -> 1.6f;
+            default -> 1;
+        };
+        context.getMatrices().push();
+        context.getMatrices().scale(scale, scale, scale);
+        float offsetX = context.getScaledWindowWidth() * (1 - scale) / (2f * scale);
+        float offsetY = context.getScaledWindowHeight() * (1 - scale) / (2f * scale);
+        context.getMatrices().translate(offsetX, offsetY, 0);
 
         //draw border
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderColor(1, 1, 1, 0.3f);
-        context.drawHorizontalLine(left_x - 1, right_x + 1, top_y - 1 + Block.SIZE * 3, Colors.RED);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
+
+        context.drawHorizontalLine(left_x - 1, right_x + 1, top_y - 1 + Block.SIZE * 3, new Color(1, 0, 0, 0.3f).getRGB());
         context.drawBorder(left_x - 1, top_y - 1, WIDTH + 2, HEIGHT + 2, Colors.WHITE);
-        RenderSystem.disableBlend();
 
         //draw moving mino
         if (currentMino!= null) {
@@ -311,7 +316,7 @@ public class TetrisScreen extends Screen {
 
         //draw destroying minos
         for (Block d : destroying) {
-            d.destroying += MinecraftClient.getInstance().getRenderTickCounter().getLastFrameDuration()*3;
+            d.destroying += MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks()*3;
             if (d.destroying>9) d.destroying = 9;
             d.draw(context);
         }
@@ -327,17 +332,15 @@ public class TetrisScreen extends Screen {
 
         //draw paused text
         Text pausedText = Text.translatable(TetrisMC.MOD_ID + ":tetris.paused");
-        if (paused) context.drawText(this.textRenderer, pausedText, this.width / 2 - (3 * pausedText.getString().length()),
+        if (paused&&active) context.drawText(this.textRenderer, pausedText, this.width / 2 - (3 * pausedText.getString().length()),
                 this.height / 2 - 7, Colors.WHITE, true);
         
         //draw combo and tetris texts
         if (onScreenTextOpacity > 0) {
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShaderColor(1, 1, 1, onScreenTextOpacity / 10f);
-            context.drawText(this.textRenderer, onScreenText, this.width / 2 - onScreenText.getString().length(), this.height / 2, onScreenTextColour, true);
-            RenderSystem.setShaderColor(1, 1, 1, 1);
-            RenderSystem.disableBlend();
+            Color base = new Color(onScreenTextColour, false);
+            float alpha = Math.clamp(onScreenTextOpacity/10f,0,1);
+            Color color = new Color(base.getRed()/255f, base.getGreen()/255f, base.getBlue()/255f, alpha);
+            context.drawText(this.textRenderer, onScreenText, this.width / 2 - onScreenText.getString().length(), this.height / 2, color.getRGB(), true);
             onScreenTextOpacity--;
         }
 
@@ -364,6 +367,7 @@ public class TetrisScreen extends Screen {
                         this.height / 2 + 25, Colors.WHITE, true);
             }
         }
+        context.getMatrices().pop();
     }
 
     @Override
