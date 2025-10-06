@@ -275,11 +275,11 @@ public class TetrisScreen extends Screen {
             case 2 -> 1.6f;
             default -> 1;
         };
-        context.getMatrices().push();
-        context.getMatrices().scale(scale, scale, scale);
+        context.getMatrices().pushMatrix();
+        context.getMatrices().scale(scale, scale);
         float offsetX = context.getScaledWindowWidth() * (1 - scale) / (2f * scale);
         float offsetY = context.getScaledWindowHeight() * (1 - scale) / (2f * scale);
-        context.getMatrices().translate(offsetX, offsetY, 0);
+        context.getMatrices().translate(offsetX, offsetY);
 
         //draw border
 
@@ -369,7 +369,7 @@ public class TetrisScreen extends Screen {
                         this.height / 2 + 25, Colors.WHITE, true);
             }
         }
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
     }
 
     @Override
