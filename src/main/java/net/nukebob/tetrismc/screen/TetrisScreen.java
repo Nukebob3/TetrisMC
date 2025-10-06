@@ -275,11 +275,11 @@ public class TetrisScreen extends Screen {
             case 2 -> 1.6f;
             default -> 1;
         };
-        context.getMatrices().pushMatrix();
-        context.getMatrices().scale(scale, scale);
+        context.getMatrices().push();
+        context.getMatrices().scale(scale, scale, scale);
         float offsetX = context.getScaledWindowWidth() * (1 - scale) / (2f * scale);
         float offsetY = context.getScaledWindowHeight() * (1 - scale) / (2f * scale);
-        context.getMatrices().translate(offsetX, offsetY);
+        context.getMatrices().translate(offsetX, offsetY, 0);
 
         //draw border
 
@@ -348,8 +348,8 @@ public class TetrisScreen extends Screen {
         //draw play button if not active
         playButton.visible = !active;
         if (!active) {
-            Color black = new Color(Colors.BLACK);
-            context.fill(left_x - 1, top_y - 1, left_x - 1 + WIDTH + 2, top_y -1 + HEIGHT + 2, new Color(black.getRed(), black.getGreen(), black.getBlue(), 0.5f).getRGB());
+            //Color black = new Color(Colors.BLACK);
+            //context.fill(left_x - 1, top_y - 1, left_x - 1 + WIDTH + 2, top_y -1 + HEIGHT + 2, new Color(black.getRed(), black.getGreen(), black.getBlue(), 0.5f).getRGB());
             super.render(context, mouseX, mouseY, delta);
             if (currentMino != null) {
                 Text finalScoreText = Text.translatable(TetrisMC.MOD_ID + ":tetris.score").append(": " + score).withColor(Colors.LIGHT_YELLOW);
@@ -369,7 +369,7 @@ public class TetrisScreen extends Screen {
                         this.height / 2 + 25, Colors.WHITE, true);
             }
         }
-        context.getMatrices().popMatrix();
+        context.getMatrices().pop();
     }
 
     @Override

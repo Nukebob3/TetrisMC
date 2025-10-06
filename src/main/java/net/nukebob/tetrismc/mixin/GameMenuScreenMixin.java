@@ -23,7 +23,7 @@ public abstract class GameMenuScreenMixin extends Screen {
     @Inject(at = @At("RETURN"), method = "initWidgets")
     private void addMinigameButton(CallbackInfo ci) {
         TextIconButtonWidget textIconButtonWidget = TextIconButtonWidget.builder(Text.empty(), (button) -> this.client.setScreen(new TetrisScreen(this)), true).width(20).texture(Identifier.of(TetrisMC.MOD_ID, "icon/button"), 16, 16).build();
-        textIconButtonWidget.setPosition(this.width / 2 - 100 + 204, 50);
+        textIconButtonWidget.setPosition(this.width / 2 - 100 + 203, 50);
 
         for (ButtonWidget button : this.children().stream().filter(e -> e instanceof ButtonWidget).map(e -> (ButtonWidget) e).toList()) {
             if (button.getMessage().equals(Text.translatable("menu.returnToGame"))) {
