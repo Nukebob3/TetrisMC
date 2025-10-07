@@ -1,6 +1,7 @@
 package net.nukebob.tetrismc.game.tetris.mino;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.model.BakedQuad;
@@ -8,19 +9,18 @@ import net.minecraft.client.render.model.BlockModelPart;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.texture.SpriteContents;
 import net.minecraft.registry.Registries;
-import net.minecraft.resource.Resource;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.MutableText;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Direction;
 import net.nukebob.tetrismc.config.TetrisConfig;
 import net.nukebob.tetrismc.game.tetris.HardDropAnimation;
 import net.nukebob.tetrismc.screen.TetrisScreen;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 public abstract class Mino {
@@ -46,21 +46,21 @@ public abstract class Mino {
             default -> {
             }
         }
-        Identifier randomBlockTexture = getRandomBlockTexture();
-        create(randomBlockTexture);
+        Pair<Identifier, MutableText> randomBlock = getRandomBlockTexture();
+        create(randomBlock.getLeft(), randomBlock.getRight());
         //SpriteContents sprite = getRandomBlockTexture();
         //create(Identifier.of(sprite.getId().getNamespace().split(":")[0],"textures/" + sprite.getId().getPath() + ".png"), sprite.getWidth(), sprite.getHeight());
     }
 
-    public void create(Identifier t) {
-        b[0] = new Block(t, this.type);
-        b[1] = new Block(t, this.type);
-        b[2] = new Block(t, this.type);
-        b[3] = new Block(t, this.type);
-        tempB[0] = new Block(t, this.type);
-        tempB[1] = new Block(t, this.type);
-        tempB[2] = new Block(t, this.type);
-        tempB[3] = new Block(t, this.type);
+    public void create(Identifier texture, MutableText name) {
+        b[0] = new Block(texture, name, this.type);
+        b[1] = new Block(texture, name, this.type);
+        b[2] = new Block(texture, name, this.type);
+        b[3] = new Block(texture, name, this.type);
+        tempB[0] = new Block(texture, name, this.type);
+        tempB[1] = new Block(texture, name, this.type);
+        tempB[2] = new Block(texture, name, this.type);
+        tempB[3] = new Block(texture, name, this.type);
     }
 
     public void setXY (int x, int y) {}
@@ -165,37 +165,35 @@ public abstract class Mino {
 
         }
     }
-    protected Identifier getRandomBlockTexture() {
+    protected Pair<Identifier, MutableText> getRandomBlockTexture() {
         MinecraftClient client = MinecraftClient.getInstance();
         net.minecraft.util.math.random.Random random = MinecraftClient.getInstance().textRenderer.random;
-        net.minecraft.block.Block block;
+        //net.minecraft.block.Block block;
         List<BakedQuad> quads;
         List<BlockModelPart> parts;
         SpriteContents texture;
         BlockState blockState;
-        while (true) {
-            block = Registries.BLOCK.get(new Random().nextInt(Registries.BLOCK.size()));
+
+        List<net.minecraft.block.Block> blocks = new java.util.ArrayList<>(Registries.BLOCK.stream().toList());
+        Collections.shuffle(blocks);
+
+        for (net.minecraft.block.Block block : blocks) {
             blockState = block.getStateManager().getStates().get(new Random().nextInt(block.getStateManager().getStates().size()));
             parts = client.getBlockRenderManager().getModel(blockState).getParts(MinecraftClient.getInstance().textRenderer.random);
+            if (parts.isEmpty()) continue;
             quads = parts.get(random.nextInt(parts.size())).getQuads(Direction.random(MinecraftClient.getInstance().textRenderer.random));
-            if (!(quads.isEmpty())) {
-                texture = quads.get(new Random().nextInt(quads.size())).sprite().getContents();
-                if (texture.getWidth() == 16 && texture.getHeight() == 16) {
-                    Optional<Resource> opR = client.getResourceManager().getResource(Identifier.of("textures/" + texture.getId().getPath() + ".png"));
-                    Resource resource = null;
-                    if (opR.isPresent()) resource = opR.get();
-                    if (resource != null) {
-                        BufferedImage image;
-                        try {
-                            image = ImageIO.read(resource.getInputStream());
-                            //if (image.getRGB(0, 0) < 0 && image.getRGB(15, 0) < 0) return new TextureResource(Identifier.of(texture.getId().getNamespace().split(":")[0],"textures/" + texture.getId().getPath() + ".png"), image.getWidth(), image.getHeight());
-                            if (image.getRGB(0, 0) < 0 && image.getRGB(15, 0) < 0) return texture.getId();
-                            //if (image.getRGB(0, 0) < 0 && image.getRGB(15, 0) < 0) return texture;
-                        } catch (Exception ignored) {}
-                    }
-                }
-            }
+            if (quads.isEmpty()) continue;
+
+            texture = quads.get(new Random().nextInt(quads.size())).sprite().getContents();
+            int corners = 0;
+            if (!texture.isPixelTransparent(0, 0, 0)) corners++;
+            if (!texture.isPixelTransparent(0, 15, 0)) corners++;
+            if (!texture.isPixelTransparent(0, 0, 15)) corners++;
+            if (!texture.isPixelTransparent(0, 15, 15)) corners++;
+            if (corners < 3) continue;
+            return new Pair<>(texture.getId(), block.getName());
         }
+        return new Pair<>(Identifier.ofVanilla("block/iron_block"), Blocks.IRON_BLOCK.getName());
     }
     public void update(float timePassed) {
         checkMovementCollision();
