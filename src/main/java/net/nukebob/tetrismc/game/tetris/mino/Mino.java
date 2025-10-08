@@ -191,6 +191,7 @@ public abstract class Mino {
             if (!texture.isPixelTransparent(0, 0, 15)) corners++;
             if (!texture.isPixelTransparent(0, 15, 15)) corners++;
             if (corners < 3) continue;
+            if (texture.getWidth()!=16) continue;
             return new Pair<>(texture.getId(), block.getName());
         }
         return new Pair<>(Identifier.ofVanilla("block/iron_block"), Blocks.IRON_BLOCK.getName());
