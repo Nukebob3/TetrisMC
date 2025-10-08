@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextIconButtonWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
@@ -19,7 +20,6 @@ import net.nukebob.tetrismc.game.tetris.mino.*;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class TetrisScreen extends Screen {
     public static int dropInterval = 60;
@@ -248,7 +248,7 @@ public class TetrisScreen extends Screen {
 
     private Mino pickMino() {
         Mino mino = null;
-        int i = new Random().nextInt(7);
+        int i = TetrisMC.RANDOM.nextInt(7);
         mino = switch (i) {
             case 0 -> new Mino_L1();
             case 1 -> new Mino_L2();
@@ -284,7 +284,7 @@ public class TetrisScreen extends Screen {
         //draw border
 
         context.drawHorizontalLine(left_x - 1, right_x, top_y - 1 + Block.SIZE * 3, new Color(1, 0, 0, 0.3f).getRGB());
-        context.drawBorder(left_x - 1, top_y - 1, WIDTH + 2, HEIGHT + 2, Colors.WHITE);
+        drawBorder(context,left_x - 1, top_y - 1, WIDTH + 2, HEIGHT + 2, Colors.WHITE);
 
         //draw moving mino
         if (currentMino!= null) {
@@ -295,7 +295,7 @@ public class TetrisScreen extends Screen {
 
 
         //draw next mino
-        context.drawBorder(right_x + Block.SIZE - 1, bottom_y - nextHEIGHT + 1, nextWIDTH + 2, nextHEIGHT, Colors.WHITE);
+        drawBorder(context,right_x + Block.SIZE - 1, bottom_y - nextHEIGHT + 1, nextWIDTH + 2, nextHEIGHT, Colors.WHITE);
         Text nextText = Text.translatable(TetrisMC.MOD_ID + ":tetris.next");
         context.drawText(this.textRenderer, nextText, right_x + Block.SIZE * 2,
                 bottom_y - nextHEIGHT + Block.SIZE/2, Colors.WHITE, true);
@@ -348,8 +348,8 @@ public class TetrisScreen extends Screen {
         //draw play button if not active
         playButton.visible = !active;
         if (!active) {
-            //Color black = new Color(Colors.BLACK);
-            //context.fill(left_x - 1, top_y - 1, left_x - 1 + WIDTH + 2, top_y -1 + HEIGHT + 2, new Color(black.getRed(), black.getGreen(), black.getBlue(), 0.5f).getRGB());
+            Color black = new Color(Colors.BLACK);
+            context.fill(left_x - 1, top_y - 1, left_x - 1 + WIDTH + 2, top_y -1 + HEIGHT + 2, new Color(black.getRed(), black.getGreen(), black.getBlue(), 0.75f).getRGB());
             super.render(context, mouseX, mouseY, delta);
             if (currentMino != null) {
                 Text finalScoreText = Text.translatable(TetrisMC.MOD_ID + ":tetris.score").append(": " + score).withColor(Colors.LIGHT_YELLOW);
@@ -372,13 +372,20 @@ public class TetrisScreen extends Screen {
         context.getMatrices().popMatrix();
     }
 
+    private void drawBorder(DrawContext context, int x, int y, int width, int height, int color) {
+        context.fill(x, y, x + width, y + 1, color);
+        context.fill(x, y + height - 1, x + width, y + height, color);
+        context.fill(x, y, x + 1, y + height, color);
+        context.fill(x + width - 1, y, x + width, y + height, color);
+    }
+
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 256 && this.shouldCloseOnEsc()) {
+    public boolean keyPressed(KeyInput keyInput) {
+        if (keyInput.getKeycode() == 256 && this.shouldCloseOnEsc()) {
             this.close();
             return true;
         } else {
-            switch (keyCode) {
+            switch (keyInput.getKeycode()) {
                 case 262, 68: rightPressed = true; break;
                 case 263, 65: leftPressed = true; break;
                 case 264, 83: downPressed = true; break;

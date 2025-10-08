@@ -14,6 +14,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Direction;
+import net.nukebob.tetrismc.TetrisMC;
 import net.nukebob.tetrismc.config.TetrisConfig;
 import net.nukebob.tetrismc.game.tetris.HardDropAnimation;
 import net.nukebob.tetrismc.screen.TetrisScreen;
@@ -21,7 +22,6 @@ import net.nukebob.tetrismc.screen.TetrisScreen;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public abstract class Mino {
     public Block[] b = new Block[4];
@@ -168,7 +168,6 @@ public abstract class Mino {
     }
     protected Pair<Identifier, MutableText> getRandomBlockTexture() {
         MinecraftClient client = MinecraftClient.getInstance();
-        net.minecraft.util.math.random.Random random = MinecraftClient.getInstance().textRenderer.random;
         //net.minecraft.block.Block block;
         List<BakedQuad> quads;
         List<BlockModelPart> parts;
@@ -179,13 +178,13 @@ public abstract class Mino {
         Collections.shuffle(blocks);
 
         for (net.minecraft.block.Block block : blocks) {
-            blockState = block.getStateManager().getStates().get(new Random().nextInt(block.getStateManager().getStates().size()));
-            parts = client.getBlockRenderManager().getModel(blockState).getParts(MinecraftClient.getInstance().textRenderer.random);
+            blockState = block.getStateManager().getStates().get(TetrisMC.RANDOM.nextInt(block.getStateManager().getStates().size()));
+            parts = client.getBlockRenderManager().getModel(blockState).getParts(TetrisMC.RANDOM);
             if (parts.isEmpty()) continue;
-            quads = parts.get(random.nextInt(parts.size())).getQuads(Direction.random(MinecraftClient.getInstance().textRenderer.random));
+            quads = parts.get(TetrisMC.RANDOM.nextInt(parts.size())).getQuads(Direction.random(TetrisMC.RANDOM));
             if (quads.isEmpty()) continue;
 
-            texture = quads.get(new Random().nextInt(quads.size())).sprite().getContents();
+            texture = quads.get(TetrisMC.RANDOM.nextInt(quads.size())).sprite().getContents();
             int corners = 0;
             if (!texture.isPixelTransparent(0, 0, 0)) corners++;
             if (!texture.isPixelTransparent(0, 15, 0)) corners++;
