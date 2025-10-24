@@ -1,6 +1,5 @@
 package net.nukebob.tetrismc.config;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.SliderWidget;
@@ -9,7 +8,6 @@ import net.minecraft.util.Colors;
 import net.nukebob.tetrismc.TetrisMC;
 
 public class ConfigScreen extends Screen {
-    public static boolean texturepackEnabled;
 
     private final Screen parent;
 
@@ -21,7 +19,6 @@ public class ConfigScreen extends Screen {
     public ConfigScreen(Screen parent) {
         super(Text.translatable(TetrisMC.MOD_ID + ":config.title"));
         this.parent = parent;
-        texturepackEnabled = MinecraftClient.getInstance().getResourcePackManager().getEnabledIds().contains(TetrisMC.MOD_ID + ":" + "dungeons_bedwars");
     }
 
     @Override
