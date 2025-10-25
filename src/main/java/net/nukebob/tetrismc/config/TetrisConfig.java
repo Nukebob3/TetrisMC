@@ -17,7 +17,7 @@ public class TetrisConfig {
 
     public boolean mod_enabled = true;
     public boolean tetris_random_textures = true;
-    public int tetris_hard_drop = 1;
+    public int tetris_hard_drop = 2;
     public float tetris_volume = 1.0f;
 
     public static TetrisConfig loadConfig() {
