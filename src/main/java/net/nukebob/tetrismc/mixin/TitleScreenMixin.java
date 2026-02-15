@@ -21,7 +21,7 @@ public abstract class TitleScreenMixin extends Screen {
 
     @Inject(at = @At("RETURN"), method = "addNormalWidgets")
     private void addMinigameButton(int y, int spacingY, CallbackInfoReturnable<Integer> cir) {
-        TextIconButtonWidget textIconButtonWidget = TextIconButtonWidget.builder(Text.empty(), (button) -> this.client.setScreen(new TetrisScreen(this)), true).width(20).texture(Identifier.of(TetrisMC.MOD_ID, "icon/button"), 16, 16).build();
+        TextIconButtonWidget textIconButtonWidget = TextIconButtonWidget.builder(Text.empty(), button -> this.client.setScreen(new TetrisScreen(this)), true).width(20).texture(Identifier.of(TetrisMC.MOD_ID, "icon/button"), 16, 16).build();
         textIconButtonWidget.setPosition(this.width / 2 - 100 + 204, y);
         if (TetrisConfig.loadConfig().mod_enabled) this.addDrawableChild(textIconButtonWidget);
     }

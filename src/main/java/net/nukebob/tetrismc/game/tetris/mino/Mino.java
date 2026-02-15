@@ -14,9 +14,12 @@ import net.minecraft.text.MutableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.LocalRandom;
 import net.nukebob.tetrismc.config.TetrisConfig;
 import net.nukebob.tetrismc.game.tetris.HardDropAnimation;
 import net.nukebob.tetrismc.screen.TetrisScreen;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Collections;
@@ -24,6 +27,9 @@ import java.util.List;
 import java.util.Random;
 
 public abstract class Mino {
+
+    public static final SoundEvent BUTTON_CLICK = SoundEvent.of(Identifier.ofVanilla("block.wooden_button.click_on"));
+
     public Block[] b = new Block[4];
     public Block[] tempB = new Block[4];
     public String type = "";
@@ -32,9 +38,12 @@ public abstract class Mino {
     boolean leftCollision, rightCollision, bottomCollision;
     public boolean active = true;
 
+    private final Random javaRandom = new Random();
+    private final net.minecraft.util.math.random.Random random = new LocalRandom(javaRandom.nextLong());
+
     private final TetrisConfig config = TetrisConfig.loadConfig();
 
-    public Mino() {
+    protected Mino() {
         switch (this) {
             case MinoSquare ignored -> type = "square";
             case MinoBar ignored -> type = "bar";
@@ -63,8 +72,10 @@ public abstract class Mino {
         tempB[3] = new Block(texture, name, this.type);
     }
 
-    public void setXY (int x, int y) {}
-    public void updateXY (int direction) {
+    public void setXY(int x, int y) {
+    }
+
+    public void updateXY(int direction) {
         for (Block b : tempB) {
             if (b.x < 0) {
                 for (Block sB : TetrisScreen.staticBlocks) {
@@ -76,7 +87,7 @@ public abstract class Mino {
                     block.x += Block.SIZE;
                 }
             }
-            if (b.x > TetrisScreen.WIDTH - Block.SIZE) {
+            if (b.x > TetrisScreen.TETRIS_WIDTH - Block.SIZE) {
                 for (Block sB : TetrisScreen.staticBlocks) {
                     if (sB.x == b.x && sB.y == b.y) {
                         return;
@@ -86,7 +97,7 @@ public abstract class Mino {
                     block.x -= Block.SIZE;
                 }
             }
-            if (b.y > TetrisScreen.HEIGHT - Block.SIZE) return;
+            if (b.y > TetrisScreen.TETRIS_HEIGHT - Block.SIZE) return;
             for (Block sB : TetrisScreen.staticBlocks) {
                 if (sB.x == b.x && sB.y == b.y) {
                     return;
@@ -102,12 +113,21 @@ public abstract class Mino {
         b[2].y = tempB[2].y;
         b[3].x = tempB[3].x;
         b[3].y = tempB[3].y;
-        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("block.wooden_button.click_on")), 2.0F, config.tetris_volume));
+        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(BUTTON_CLICK, 2.0F, config.tetris_volume));
     }
-    public void getDirection1() {}
-    public void getDirection2() {}
-    public void getDirection3() {}
-    public void getDirection4() {}
+
+    public void getDirection1() {
+    }
+
+    public void getDirection2() {
+    }
+
+    public void getDirection3() {
+    }
+
+    public void getDirection4() {
+    }
+
     public void checkMovementCollision() {
         leftCollision = false;
         rightCollision = false;
@@ -125,14 +145,14 @@ public abstract class Mino {
         }
         //right wall
         for (Block block : b) {
-            if (block.x + Block.SIZE >= TetrisScreen.WIDTH) {
+            if (block.x + Block.SIZE >= TetrisScreen.TETRIS_WIDTH) {
                 rightCollision = true;
                 break;
             }
         }
         //bottom floor
         for (Block block : b) {
-            if (block.y + Block.SIZE >= TetrisScreen.HEIGHT) {
+            if (block.y + Block.SIZE >= TetrisScreen.TETRIS_HEIGHT) {
                 bottomCollision = true;
                 break;
             }
@@ -165,9 +185,9 @@ public abstract class Mino {
 
         }
     }
+
     protected Pair<Identifier, MutableText> getRandomBlockTexture() {
         MinecraftClient client = MinecraftClient.getInstance();
-        net.minecraft.util.math.random.Random random = MinecraftClient.getInstance().textRenderer.random;
         //net.minecraft.block.Block block;
         List<BakedQuad> quads;
         List<BlockModelPart> parts;
@@ -178,13 +198,13 @@ public abstract class Mino {
         Collections.shuffle(blocks);
 
         for (net.minecraft.block.Block block : blocks) {
-            blockState = block.getStateManager().getStates().get(new Random().nextInt(block.getStateManager().getStates().size()));
-            parts = client.getBlockRenderManager().getModel(blockState).getParts(MinecraftClient.getInstance().textRenderer.random);
+            blockState = block.getStateManager().getStates().get(random.nextInt(block.getStateManager().getStates().size()));
+            parts = client.getBlockRenderManager().getModel(blockState).getParts(random);
             if (parts.isEmpty()) continue;
-            quads = parts.get(random.nextInt(parts.size())).getQuads(Direction.random(MinecraftClient.getInstance().textRenderer.random));
+            quads = parts.get(random.nextInt(parts.size())).getQuads(Direction.random(random));
             if (quads.isEmpty()) continue;
 
-            texture = quads.get(new Random().nextInt(quads.size())).sprite().getContents();
+            texture = quads.get(random.nextInt(quads.size())).sprite().getContents();
             int corners = 0;
             if (!texture.isPixelTransparent(0, 0, 0)) corners++;
             if (!texture.isPixelTransparent(0, 15, 0)) corners++;
@@ -195,6 +215,7 @@ public abstract class Mino {
         }
         return new Pair<>(Identifier.ofVanilla("block/iron_block"), Blocks.IRON_BLOCK.getName());
     }
+
     public void update(float timePassed) {
         checkMovementCollision();
         if (TetrisScreen.leftPressed) {
@@ -214,7 +235,7 @@ public abstract class Mino {
                     }
                 }
                 if (proceed) {
-                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("block.wooden_button.click_on")), 2.0F,  config.tetris_volume));
+                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(BUTTON_CLICK, 2.0F, config.tetris_volume));
                     for (Block block : b) {
                         block.x -= Block.SIZE;
                     }
@@ -233,13 +254,13 @@ public abstract class Mino {
                             break;
                         }
                     }
-                    if (block.x + Block.SIZE > TetrisScreen.WIDTH) {
+                    if (block.x + Block.SIZE > TetrisScreen.TETRIS_WIDTH) {
                         proceed = false;
                         break;
                     }
                 }
                 if (proceed) {
-                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("block.wooden_button.click_on")), 2.0F,  config.tetris_volume));
+                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(BUTTON_CLICK, 2.0F, config.tetris_volume));
                     for (Block block : b) {
                         block.x += Block.SIZE;
                     }
@@ -249,10 +270,18 @@ public abstract class Mino {
         }
         if (TetrisScreen.upPressed) {
             switch (direction) {
-                case 1: getDirection2(); break;
-                case 2: getDirection3(); break;
-                case 3: getDirection4(); break;
-                case 4: getDirection1(); break;
+                case 1:
+                    getDirection2();
+                    break;
+                case 2:
+                    getDirection3();
+                    break;
+                case 3:
+                    getDirection4();
+                    break;
+                case 4:
+                    getDirection1();
+                    break;
             }
             TetrisScreen.upPressed = false;
         }
@@ -270,7 +299,7 @@ public abstract class Mino {
                     }
                 }
                 if (proceed) {
-                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("block.wooden_button.click_on")), 2.0F, config.tetris_volume));
+                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(BUTTON_CLICK, 2.0F, config.tetris_volume));
                     for (Block block : b) {
                         block.y += Block.SIZE;
                     }
@@ -281,7 +310,7 @@ public abstract class Mino {
             TetrisScreen.downPressed = false;
         }
         if (TetrisScreen.spacePressed && TetrisScreen.hardDrop > 0) {
-            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("entity.wind_charge.wind_burst")), 1.0F,  config.tetris_volume / 2));
+            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvent.of(Identifier.ofVanilla("entity.wind_charge.wind_burst")), 1.0F, config.tetris_volume / 2));
             int drop = getDropOffset();
             TetrisScreen.animations.add(new HardDropAnimation(b[0].x, b[0].y, 27, drop, 10));
             b[0].y += drop;
@@ -318,12 +347,14 @@ public abstract class Mino {
             }
         }
     }
-    public void draw (DrawContext context) {
+
+    public void draw(DrawContext context) {
         for (Block block : b) {
             block.draw(context);
         }
     }
-    public void drawHardDrop (DrawContext context) {
+
+    public void drawHardDrop(DrawContext context) {
         int yOffset = getDropOffset();
 
         Color color = new Color(1, 1, 1, 0.5f);
@@ -379,14 +410,14 @@ public abstract class Mino {
 
     private int getDropOffset() {
         int i;
-        for (i = 0; i < TetrisScreen.HEIGHT / Block.SIZE; i++) {
+        for (i = 0; i < TetrisScreen.TETRIS_HEIGHT / Block.SIZE; i++) {
             for (Block b : b) {
                 for (Block sB : TetrisScreen.staticBlocks) {
                     if (b.x == sB.x && b.y + i * Block.SIZE == sB.y) {
                         return i * Block.SIZE - Block.SIZE;
                     }
                 }
-                if (b.y + i * Block.SIZE > TetrisScreen.HEIGHT - Block.SIZE) {
+                if (b.y + i * Block.SIZE > TetrisScreen.TETRIS_HEIGHT - Block.SIZE) {
                     return i * Block.SIZE - Block.SIZE;
                 }
             }
@@ -394,7 +425,8 @@ public abstract class Mino {
         return i * Block.SIZE - Block.SIZE;
     }
 
-    private boolean[] getOutline(Block b) {
+    @Contract(value = "_ -> new", pure = true)
+    private boolean @NotNull [] getOutline(Block b) {
         boolean top = true;
         boolean bottom = true;
         boolean left = true;

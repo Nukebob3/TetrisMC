@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 
 public class HighScores {
+
     public int tetrisHighScore = 0;
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

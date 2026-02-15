@@ -1,9 +1,11 @@
 package net.nukebob.tetrismc.game.tetris;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Identifier;
 import net.nukebob.tetrismc.TetrisMC;
+import org.jetbrains.annotations.NotNull;
 
 public class Animation {
     public int x;
@@ -25,10 +27,10 @@ public class Animation {
     }
 
     public void draw(DrawContext context) {
-        context.drawTexture(RenderLayer::getGuiTextured, Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
-        }
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
+    }
 
-    public void draw(DrawContext context, int x, int y) {
-        context.drawTexture(RenderLayer::getGuiTextured, Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
+    public void draw(@NotNull DrawContext context, int x, int y) {
+        context.drawTexture(RenderPipelines.GUI_TEXTURED, Identifier.of(TetrisMC.MOD_ID, "animation/" + animation + "/" + (int) frame + ".png"), x, y, 0, 0, width, height, width, height);
     }
 }
