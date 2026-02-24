@@ -25,7 +25,7 @@ public abstract class GameMenuScreenMixin extends Screen {
         TextIconButtonWidget textIconButtonWidget = TextIconButtonWidget.builder(Text.empty(), (button) -> this.client.setScreen(new TetrisScreen(this)), true).width(20).texture(Identifier.of(TetrisMC.MOD_ID, "icon/button"), 16, 16).build();
         textIconButtonWidget.setPosition(this.width / 2 - 100 + 203, 50);
 
-        for (ButtonWidget button : this.children().stream().filter(e -> e instanceof ButtonWidget).map(e -> (ButtonWidget) e).toList()) {
+        for (ButtonWidget button : this.children().stream().filter(ButtonWidget.class::isInstance).map(e -> (ButtonWidget) e).toList()) {
             if (button.getMessage().equals(Text.translatable("menu.returnToGame"))) {
                 int buttonX = button.getX();
                 int buttonY = button.getY();

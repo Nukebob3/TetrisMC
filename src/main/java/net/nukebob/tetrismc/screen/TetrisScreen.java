@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextIconButtonWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
@@ -16,27 +17,29 @@ import net.nukebob.tetrismc.config.TetrisConfig;
 import net.nukebob.tetrismc.game.HighScores;
 import net.nukebob.tetrismc.game.tetris.Animation;
 import net.nukebob.tetrismc.game.tetris.mino.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class TetrisScreen extends Screen {
+
     public static int dropInterval = 60;
-    static final int gridX = 10;
-    static final int gridY = 16;
-    public static final int WIDTH = Block.SIZE * gridX;
-    public static final int HEIGHT = Block.SIZE * gridY;
+    static final int GRID_X = 10;
+    static final int GRID_Y = 16;
+    public static final int TETRIS_WIDTH = Block.SIZE * GRID_X;
+    public static final int TETRIS_HEIGHT = Block.SIZE * GRID_Y;
 
     int levelLength = 5;
 
-    public static final int nextWIDTH = Block.SIZE * 4;
-    public static final int nextHEIGHT = Block.SIZE * 5;
+    public static final int NEXT_WIDTH = Block.SIZE * 4;
+    public static final int NEXT_HEIGHT = Block.SIZE * 5;
 
-    public static int left_x;
-    public static int right_x;
-    public static int top_y;
-    public static int bottom_y;
+    public static int leftX;
+    public static int rightX;
+    public static int topY;
+    public static int bottomY;
 
     public static boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed, paused, active = false;
     public static int hardDrop;
@@ -78,25 +81,22 @@ public class TetrisScreen extends Screen {
     @Override
     protected void init() {
         //main play area frame
-        left_x = this.width / 2 - WIDTH / 2;
-        right_x = left_x + WIDTH;
-        top_y = this.height / 2 - HEIGHT / 2;
-        bottom_y = top_y + HEIGHT;
+        leftX = this.width / 2 - TETRIS_WIDTH / 2;
+        rightX = leftX + TETRIS_WIDTH;
+        topY = this.height / 2 - TETRIS_HEIGHT / 2;
+        bottomY = topY + TETRIS_HEIGHT;
 
         paused = true;
 
         hardDrop = config.tetris_hard_drop;
 
-        ButtonWidget returnButton = TextIconButtonWidget.builder(Text.empty(), button -> this.client.setScreen(this.parent), true)
-                .texture(Identifier.of(TetrisMC.MOD_ID, "icon/return"), 15, 15).build();
+        ButtonWidget returnButton = TextIconButtonWidget.builder(Text.empty(), button -> this.client.setScreen(this.parent), true).texture(Identifier.of(TetrisMC.MOD_ID, "icon/return"), 15, 15).build();
         returnButton.setTooltip(Tooltip.of(Text.translatable(TetrisMC.MOD_ID + ":game.return")));
         returnButton.setDimensionsAndPosition(20, 20, 20, 20);
-        ButtonWidget restartButton = TextIconButtonWidget.builder(Text.empty(), button -> gameOver(), true)
-                .texture(Identifier.of(TetrisMC.MOD_ID, "icon/restart"), 15, 15).build();
+        ButtonWidget restartButton = TextIconButtonWidget.builder(Text.empty(), button -> gameOver(), true).texture(Identifier.of(TetrisMC.MOD_ID, "icon/restart"), 15, 15).build();
         restartButton.setTooltip(Tooltip.of(Text.translatable(TetrisMC.MOD_ID + ":game.restart")));
         restartButton.setDimensionsAndPosition(20, 20, 45, 20);
-        ButtonWidget pauseButton = TextIconButtonWidget.builder(Text.empty(), button -> paused = !paused, true)
-                .texture(Identifier.of(TetrisMC.MOD_ID, "icon/pause"), 15, 15).build();
+        ButtonWidget pauseButton = TextIconButtonWidget.builder(Text.empty(), button -> paused = !paused, true).texture(Identifier.of(TetrisMC.MOD_ID, "icon/pause"), 15, 15).build();
         pauseButton.setTooltip(Tooltip.of(Text.translatable(TetrisMC.MOD_ID + ":game.pause")));
         pauseButton.setDimensionsAndPosition(20, 20, 70, 20);
 
@@ -128,14 +128,12 @@ public class TetrisScreen extends Screen {
         destroying = new ArrayList<>();
         animations = new ArrayList<>();
         currentMino = pickMino();
-        currentMino.setXY(WIDTH / 2, Block.SIZE);
+        currentMino.setXY(TETRIS_WIDTH / 2, Block.SIZE);
 
         leftPressed = rightPressed = upPressed = downPressed = spacePressed = false;
 
         nextMino = pickMino();
-        nextMino.setXY(WIDTH + Block.SIZE * 2 +
-                        (nextMino instanceof Mino_L2 || nextMino instanceof Mino_Z1 ? Block.SIZE : (nextMino instanceof Mino_T ? Block.SIZE / 2 : 0)),
-                HEIGHT - (int) (Block.SIZE * 2.5f));
+        nextMino.setXY(TETRIS_WIDTH + Block.SIZE * 2 + (nextMino instanceof MinoL2 || nextMino instanceof MinoZ1 ? Block.SIZE : (nextMino instanceof MinoT ? Block.SIZE / 2 : 0)), TETRIS_HEIGHT - (int) (Block.SIZE * 2.5f));
     }
 
     public void manager() {
@@ -143,7 +141,7 @@ public class TetrisScreen extends Screen {
             reset();
         }
         if (!currentMino.active) {
-            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("block.stone.place")), 1.5F, 5.0f * config.tetris_volume));
+            MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvent.of(Identifier.ofVanilla("block.stone.place")), 1.5F, 5.0f * config.tetris_volume));
             score += 10;
 
             staticBlocks.add(currentMino.b[0]);
@@ -161,19 +159,26 @@ public class TetrisScreen extends Screen {
             if (lines > 0) {
                 combo++;
                 if (combo > 1) {
-                    onScreenText = Text.translatable(TetrisMC.MOD_ID + ":tetris.combo").append(" x"+combo);
+                    onScreenText = Text.translatable(TetrisMC.MOD_ID + ":tetris.combo").append(" x" + combo);
                     onScreenTextOpacity = 30;
                     onScreenTextColour = (combo > 3 ? Colors.RED : (combo > 2 ? Colors.YELLOW : Colors.WHITE));
                     score += 50 * (combo - 1);
                 }
             } else combo = 0;
             switch (lines) {
-                case 1: score += 100; break;
-                case 2: score += 300; break;
-                case 3: score += 500; break;
-                case 4: score += 800;
-                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("entity.generic.explode")), 0.8F, 5.0f * config.tetris_volume));
-                    animations.add(new Animation(this.width/2 - width/2, currentMino.b[2].y, width, height, "explosion", 20));
+                case 1:
+                    score += 100;
+                    break;
+                case 2:
+                    score += 300;
+                    break;
+                case 3:
+                    score += 500;
+                    break;
+                case 4:
+                    score += 800;
+                    MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvent.of(Identifier.ofVanilla("entity.generic.explode")), 0.8F, 5.0f * config.tetris_volume));
+                    animations.add(new Animation(this.width / 2 - width / 2, currentMino.b[2].y, width, height, "explosion", 20));
                     onScreenText = Text.translatable(TetrisMC.MOD_ID + ":tetris.tetris");
                     onScreenTextColour = 11141290;
                     onScreenTextOpacity = 30;
@@ -181,16 +186,36 @@ public class TetrisScreen extends Screen {
             }
 
             switch (level) {
-                case 1: dropInterval = 54; break;
-                case 2: dropInterval = 48; break;
-                case 3: dropInterval = 41; break;
-                case 4: dropInterval = 35; break;
-                case 5: dropInterval = 29; break;
-                case 6: dropInterval = 22; break;
-                case 7: dropInterval = 16; break;
-                case 8: dropInterval = 10; break;
-                case 9: dropInterval = 8; break;
-                case 10: dropInterval = 6; break;
+                case 1:
+                    dropInterval = 54;
+                    break;
+                case 2:
+                    dropInterval = 48;
+                    break;
+                case 3:
+                    dropInterval = 41;
+                    break;
+                case 4:
+                    dropInterval = 35;
+                    break;
+                case 5:
+                    dropInterval = 29;
+                    break;
+                case 6:
+                    dropInterval = 22;
+                    break;
+                case 7:
+                    dropInterval = 16;
+                    break;
+                case 8:
+                    dropInterval = 10;
+                    break;
+                case 9:
+                    dropInterval = 8;
+                    break;
+                case 10:
+                    dropInterval = 6;
+                    break;
             }
 
             for (Block b : currentMino.b) {
@@ -201,20 +226,18 @@ public class TetrisScreen extends Screen {
             }
 
             currentMino = nextMino;
-            currentMino.setXY(WIDTH / 2, Block.SIZE);
+            currentMino.setXY(TETRIS_WIDTH / 2, Block.SIZE);
 
             nextMino = pickMino();
-            nextMino.setXY(WIDTH + Block.SIZE * 2 +
-                            (nextMino instanceof Mino_L2 || nextMino instanceof Mino_Z1 ? Block.SIZE : (nextMino instanceof Mino_T ? Block.SIZE / 2 : 0)),
-                    HEIGHT - (int) (Block.SIZE * 2.5f));
+            nextMino.setXY(TETRIS_WIDTH + Block.SIZE * 2 + (nextMino instanceof MinoL2 || nextMino instanceof MinoZ1 ? Block.SIZE : (nextMino instanceof MinoT ? Block.SIZE / 2 : 0)), TETRIS_HEIGHT - (int) (Block.SIZE * 2.5f));
         }
         float frameDuration = MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks();
-        currentMino.update(frameDuration*3);
-        animation+=frameDuration*3;
+        currentMino.update(frameDuration * 3);
+        animation += frameDuration * 3;
     }
 
     private void gameOver() {
-        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("entity.pig.ambient")), 1.0F, 5.0f * config.tetris_volume));
+        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvent.of(Identifier.ofVanilla("entity.pig.ambient")), 1.0F, 5.0f * config.tetris_volume));
         isNewHighScore = score > HighScores.loadHighScores().tetrisHighScore;
         active = false;
     }
@@ -224,10 +247,10 @@ public class TetrisScreen extends Screen {
         for (Block block : staticBlocks) {
             if (block.y == y) count++;
         }
-        if (count < gridX) {
+        if (count < GRID_X) {
             return false;
         }
-        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvent.of(Identifier.ofVanilla("block.deepslate.break")), 1.0F, 5.0f * config.tetris_volume));
+        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.ui(SoundEvent.of(Identifier.ofVanilla("block.deepslate.break")), 1.0F, 5.0f * config.tetris_volume));
         linesCleared++;
         for (Block block : staticBlocks) {
             if (block.y == y) {
@@ -250,18 +273,19 @@ public class TetrisScreen extends Screen {
         Mino mino = null;
         int i = new Random().nextInt(7);
         mino = switch (i) {
-            case 0 -> new Mino_L1();
-            case 1 -> new Mino_L2();
-            case 2 -> new Mino_Square();
-            case 3 -> new Mino_Bar();
-            case 4 -> new Mino_T();
-            case 5 -> new Mino_Z1();
-            case 6 -> new Mino_Z2();
+            case 0 -> new MinoL1();
+            case 1 -> new MinoL2();
+            case 2 -> new MinoSquare();
+            case 3 -> new MinoBar();
+            case 4 -> new MinoT();
+            case 5 -> new MinoZ1();
+            case 6 -> new MinoZ2();
             default -> mino;
         };
         return mino;
     }
 
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (active) super.render(context, mouseX, mouseY, delta);
         //called here as this is run quite frequently
@@ -275,19 +299,19 @@ public class TetrisScreen extends Screen {
             case 2 -> 1.6f;
             default -> 1;
         };
-        context.getMatrices().push();
-        context.getMatrices().scale(scale, scale, scale);
+
+        context.getMatrices().pushMatrix();
+        context.getMatrices().scale(scale, scale);
         float offsetX = context.getScaledWindowWidth() * (1 - scale) / (2f * scale);
         float offsetY = context.getScaledWindowHeight() * (1 - scale) / (2f * scale);
-        context.getMatrices().translate(offsetX, offsetY, 0);
+        context.getMatrices().translate(offsetX, offsetY);
 
         //draw border
-
-        context.drawHorizontalLine(left_x - 1, right_x, top_y - 1 + Block.SIZE * 3, new Color(1, 0, 0, 0.3f).getRGB());
-        context.drawBorder(left_x - 1, top_y - 1, WIDTH + 2, HEIGHT + 2, Colors.WHITE);
+        context.drawHorizontalLine(leftX - 1, rightX, topY - 1 + Block.SIZE * 3, new Color(1, 0, 0, 0.3f).getRGB());
+        context.drawStrokedRectangle(leftX - 1, topY - 1, TETRIS_WIDTH + 2, TETRIS_HEIGHT + 2, Colors.WHITE);
 
         //draw moving mino
-        if (currentMino!= null) {
+        if (currentMino != null) {
             currentMino.draw(context);
             //draw hard drop
             if (hardDrop > 0) currentMino.drawHardDrop(context);
@@ -295,19 +319,16 @@ public class TetrisScreen extends Screen {
 
 
         //draw next mino
-        context.drawBorder(right_x + Block.SIZE - 1, bottom_y - nextHEIGHT + 1, nextWIDTH + 2, nextHEIGHT, Colors.WHITE);
+        context.drawStrokedRectangle(rightX + Block.SIZE - 1, bottomY - NEXT_HEIGHT + 1, NEXT_WIDTH + 2, NEXT_HEIGHT, Colors.WHITE);
         Text nextText = Text.translatable(TetrisMC.MOD_ID + ":tetris.next");
-        context.drawText(this.textRenderer, nextText, right_x + Block.SIZE * 2,
-                bottom_y - nextHEIGHT + Block.SIZE/2, Colors.WHITE, true);
-        if (nextMino!= null) nextMino.draw(context);
+        context.drawText(this.textRenderer, nextText, rightX + Block.SIZE * 2, bottomY - NEXT_HEIGHT + Block.SIZE / 2, Colors.WHITE, true);
+        if (nextMino != null) nextMino.draw(context);
 
         //draw score
         Text scoreText = Text.translatable(TetrisMC.MOD_ID + ":tetris.score").append(": " + score);
-        context.drawText(this.textRenderer, scoreText, right_x + Block.SIZE * 2,
-                top_y + Block.SIZE, Colors.WHITE, true);
+        context.drawText(this.textRenderer, scoreText, rightX + Block.SIZE * 2, topY + Block.SIZE, Colors.WHITE, true);
         Text linesText = Text.translatable(TetrisMC.MOD_ID + ":tetris.lines").append(": " + linesCleared);
-        context.drawText(this.textRenderer, linesText, right_x + Block.SIZE * 2,
-                top_y + Block.SIZE + 10, Colors.WHITE, true);
+        context.drawText(this.textRenderer, linesText, rightX + Block.SIZE * 2, topY + Block.SIZE + 10, Colors.WHITE, true);
 
         //draw static minos
         for (Block block : staticBlocks) {
@@ -316,15 +337,16 @@ public class TetrisScreen extends Screen {
 
         //draw destroying minos
         for (Block d : destroying) {
-            d.destroying += MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks()*3;
-            if (d.destroying>9) d.destroying = 9;
+            d.destroying += MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks() * 3;
+            if (d.destroying > 9) d.destroying = 9;
             d.draw(context);
         }
         destroying.removeIf(d -> d.destroying >= 9);
 
         //draw explosions
         for (Animation a : animations) {
-            if (a.animation.equals("explosion")) a.draw(context, this.width/2 - a.width/2, top_y + a.y - a.height/2);
+            if (a.animation.equals("explosion"))
+                a.draw(context, this.width / 2 - a.width / 2, topY + a.y - a.height / 2);
             else a.draw(context);
             a.frame += 1f;
         }
@@ -332,14 +354,14 @@ public class TetrisScreen extends Screen {
 
         //draw paused text
         Text pausedText = Text.translatable(TetrisMC.MOD_ID + ":tetris.paused");
-        if (paused&&active) context.drawText(this.textRenderer, pausedText, this.width / 2 - (3 * pausedText.getString().length()),
-                this.height / 2 - 7, Colors.WHITE, true);
-        
+        if (paused && active)
+            context.drawText(this.textRenderer, pausedText, this.width / 2 - (3 * pausedText.getString().length()), this.height / 2 - 7, Colors.WHITE, true);
+
         //draw combo and tetris texts
         if (onScreenTextOpacity > 0) {
             Color base = new Color(onScreenTextColour, false);
-            float alpha = Math.clamp(onScreenTextOpacity/10f,0,1);
-            Color color = new Color(base.getRed()/255f, base.getGreen()/255f, base.getBlue()/255f, alpha);
+            float alpha = Math.clamp(onScreenTextOpacity / 10f, 0, 1);
+            Color color = new Color(base.getRed() / 255f, base.getGreen() / 255f, base.getBlue() / 255f, alpha);
             context.drawText(this.textRenderer, onScreenText, this.width / 2 - onScreenText.getString().length(), this.height / 2, color.getRGB(), true);
             onScreenTextOpacity--;
         }
@@ -353,11 +375,9 @@ public class TetrisScreen extends Screen {
             super.render(context, mouseX, mouseY, delta);
             if (currentMino != null) {
                 Text finalScoreText = Text.translatable(TetrisMC.MOD_ID + ":tetris.score").append(": " + score).withColor(Colors.LIGHT_YELLOW);
-                context.drawText(this.textRenderer, finalScoreText, this.width / 2 - (finalScoreText.getString().length() * 3),
-                        this.height / 2 - 35, Colors.WHITE, true);
+                context.drawText(this.textRenderer, finalScoreText, this.width / 2 - (finalScoreText.getString().length() * 3), this.height / 2 - 35, Colors.WHITE, true);
                 Text linesClearedText = Text.translatable(TetrisMC.MOD_ID + ":tetris.lines").append(": " + linesCleared).withColor(Colors.LIGHT_YELLOW);
-                context.drawText(this.textRenderer, linesClearedText, this.width / 2 - (linesClearedText.getString().length() * 3),
-                        this.height / 2 - 25, Colors.WHITE, true);
+                context.drawText(this.textRenderer, linesClearedText, this.width / 2 - (linesClearedText.getString().length() * 3), this.height / 2 - 25, Colors.WHITE, true);
                 HighScores.loadHighScores();
                 Text highScoreClearedText;
                 if (score > HighScores.loadHighScores().tetrisHighScore) {
@@ -365,25 +385,38 @@ public class TetrisScreen extends Screen {
                     HighScores.saveHighScores();
                 }
                 highScoreClearedText = Text.translatable(isNewHighScore ? TetrisMC.MOD_ID + ":tetris.new_high_score" : TetrisMC.MOD_ID + ":tetris.high_score").append(": " + HighScores.loadHighScores().tetrisHighScore).withColor(Colors.YELLOW);
-                if (HighScores.loadHighScores().tetrisHighScore > 0) context.drawText(this.textRenderer, highScoreClearedText, this.width / 2 - (highScoreClearedText.getString().length() * 3),
-                        this.height / 2 + 25, Colors.WHITE, true);
+                if (HighScores.loadHighScores().tetrisHighScore > 0)
+                    context.drawText(this.textRenderer, highScoreClearedText, this.width / 2 - (highScoreClearedText.getString().length() * 3), this.height / 2 + 25, Colors.WHITE, true);
             }
         }
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(@NotNull KeyInput input) {
+        int keyCode = input.key();
         if (keyCode == 256 && this.shouldCloseOnEsc()) {
             this.close();
             return true;
         } else {
             switch (keyCode) {
-                case 262, 68: rightPressed = true; break;
-                case 263, 65: leftPressed = true; break;
-                case 264, 83: downPressed = true; break;
-                case 265, 87: upPressed = true; break;
-                case 32: spacePressed = true; break;
+                case 262, 68:
+                    rightPressed = true;
+                    break;
+                case 263, 65:
+                    leftPressed = true;
+                    break;
+                case 264, 83:
+                    downPressed = true;
+                    break;
+                case 265, 87:
+                    upPressed = true;
+                    break;
+                case 32:
+                    spacePressed = true;
+                    break;
+                default:
+                    return false;
             }
         }
 

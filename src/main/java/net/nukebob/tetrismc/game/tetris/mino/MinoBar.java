@@ -1,6 +1,8 @@
 package net.nukebob.tetrismc.game.tetris.mino;
 
-public class Mino_Bar extends Mino{
+public class MinoBar extends Mino {
+
+    @Override
     public void setXY(int x, int y) {
         //
         // o o o o
@@ -14,6 +16,8 @@ public class Mino_Bar extends Mino{
         b[3].x = b[0].x + Block.SIZE * 2;
         b[3].y = b[0].y;
     }
+
+    @Override
     public void getDirection1() {
         //
         // o o o o
@@ -29,6 +33,8 @@ public class Mino_Bar extends Mino{
 
         updateXY(1);
     }
+
+    @Override
     public void getDirection2() {
         //   o
         //   o
@@ -45,9 +51,13 @@ public class Mino_Bar extends Mino{
 
         updateXY(2);
     }
+
+    @Override
     public void getDirection3() {
         getDirection1();
     }
+
+    @Override
     public void getDirection4() {
         getDirection2();
     }

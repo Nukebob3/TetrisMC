@@ -20,15 +20,15 @@
 			"net.nukebob.tetrismc.TetrisMC"
 		],
 		"modmenu": [
-          "net.nukebob.tetrismc.config.ModMenuIntegration"
+			"net.nukebob.tetrismc.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
 		"tetrismc.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.9",
-		"minecraft": "=1.21.5",
+		"fabricloader": ">=0.18.4",
+		"minecraft": "=1.21.11",
 		"java": ">=21",
 		"fabric-api": "*"
 	},
