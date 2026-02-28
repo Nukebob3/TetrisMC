@@ -1,37 +1,70 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
+name: Build release
 
-name: build
-on: [pull_request, push]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        # Use these Java versions
-        java: [
-          21,    # Current Java LTS
-        ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: checkout repository
-        uses: actions/checkout@v4
-      - name: validate gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
-      - name: setup jdk ${{ matrix.java }}
-        uses: actions/setup-java@v4
+
+      - uses: actions/checkout@v5
         with:
-          java-version: ${{ matrix.java }}
-          distribution: 'microsoft'
-      - name: make gradle wrapper executable
+          fetch-depth: 0
+
+      - name: Setup up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
+      - name: Read version from gradle.properties
+        id: gradle_props
+        run: |
+          VERSION=$(grep "^mod_version" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create tag if not exists
+        run: |
+          VERSION=${{ steps.gradle_props.outputs.version }}
+
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag already exists"
+          else
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git tag $VERSION
+            git push origin $VERSION -o ci.skip
+          fi
+
+      - name: Make gradlew executable
         run: chmod +x ./gradlew
-      - name: build
+
+      - name: Build with Gradle
         run: ./gradlew build
-      - name: capture build artifacts
-        if: ${{ matrix.java == '21' }} # Only upload artifacts built from latest java
+
+      - name: Upload JAR as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
-          path: build/libs/
+          name: TetrisMC-${{ steps.gradle_props.outputs.version }}
+          path: build/libs/*.jar
+
+      - name: Create or Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.gradle_props.outputs.version }}
+          files: build/libs/*.jar
+          tag_name: ${{ steps.gradle_props.outputs.version }}
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          draft: false
+          prerelease: ${{ contains(steps.gradle_props.outputs.version, 'beta') || contains(steps.gradle_props.outputs.version, 'alpha') || contains(steps.gradle_props.outputs.version, 'SNAPSHOT') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
