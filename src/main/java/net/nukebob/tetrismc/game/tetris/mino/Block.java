@@ -1,12 +1,12 @@
 package net.nukebob.tetrismc.game.tetris.mino;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.text.MutableText;
-import net.minecraft.util.Atlases;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.nukebob.tetrismc.config.TetrisConfig;
 import net.nukebob.tetrismc.screen.TetrisScreen;
 import org.jetbrains.annotations.NotNull;
@@ -18,54 +18,54 @@ public class Block {
     public int x, y;
     public static int SIZE = 16;
     public Identifier texture;
-    public MutableText name;
+    public MutableComponent name;
     public String mino;
     public float destroying;
 
-    public Block(Identifier texture, MutableText name, String mino) {
+    public Block(Identifier texture, MutableComponent name, String mino) {
         this.texture = texture;
         this.name = name;
         this.destroying = -1;
         this.mino = mino;
     }
 
-    public void draw(@NotNull DrawContext context) {
+    public void draw(@NotNull GuiGraphicsExtractor context) {
         Identifier drawTexture = (TetrisConfig.loadConfig().tetris_random_textures) ? texture : getDefaultTexture();
 
         Color color = new Color(1F, 1F, 1F, destroying == -1 ? 1 : 1 - ((int) destroying * 0.1f));
-        Sprite sprite = MinecraftClient.getInstance().getAtlasManager().getAtlasTexture(Atlases.BLOCKS).getSprite(drawTexture);
-        context.drawSpriteStretched(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y, Block.SIZE, Block.SIZE, color.getRGB());
+        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(drawTexture);
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y, Block.SIZE, Block.SIZE, color.getRGB());
         if ((int) destroying != -1) {
-            context.drawTexture(RenderPipelines.GUI_TEXTURED, Identifier.of("textures/block/destroy_stage_" + (int) destroying + ".png"), TetrisScreen.leftX + x, TetrisScreen.topY + y, 0, Block.SIZE * (int) (TetrisScreen.animation / 30f), Block.SIZE, Block.SIZE, Block.SIZE, Block.SIZE);
+            context.blit(RenderPipelines.GUI_TEXTURED, Identifier.parse("textures/block/destroy_stage_" + (int) destroying + ".png"), TetrisScreen.leftX + x, TetrisScreen.topY + y, 0, Block.SIZE * (int) (TetrisScreen.animation / 30f), Block.SIZE, Block.SIZE, Block.SIZE, Block.SIZE);
         }
 
         if (TetrisScreen.paused && TetrisScreen.active) {
-            double mouseX = MinecraftClient.getInstance().mouse.getX() / MinecraftClient.getInstance().getWindow().getScaleFactor();
-            double mouseY = MinecraftClient.getInstance().mouse.getY() / MinecraftClient.getInstance().getWindow().getScaleFactor();
+            double mouseX = Minecraft.getInstance().mouseHandler.xpos() / Minecraft.getInstance().getWindow().getGuiScale();
+            double mouseY = Minecraft.getInstance().mouseHandler.ypos() / Minecraft.getInstance().getWindow().getGuiScale();
 
             if (mouseX >= TetrisScreen.leftX + x && mouseX < TetrisScreen.leftX + x + SIZE && mouseY >= TetrisScreen.topY + y && mouseY < TetrisScreen.topY + y + SIZE) {
-                context.drawTooltip(MinecraftClient.getInstance().textRenderer, name, (int) mouseX, (int) mouseY);
+                context.setTooltipForNextFrame(Minecraft.getInstance().font, name, (int) mouseX, (int) mouseY);
             }
         }
     }
 
-    public void draw(@NotNull DrawContext context, int yOffset) {
+    public void draw(@NotNull GuiGraphicsExtractor context, int yOffset) {
         Identifier drawTexture = (TetrisConfig.loadConfig().tetris_random_textures) ? texture : getDefaultTexture();
 
-        Sprite sprite = MinecraftClient.getInstance().getAtlasManager().getAtlasTexture(Atlases.BLOCKS).getSprite(drawTexture);
-        context.drawSpriteStretched(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y + yOffset, Block.SIZE, Block.SIZE, new Color(1, 1, 1, 0.3f).getRGB());
+        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(drawTexture);
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y + yOffset, Block.SIZE, Block.SIZE, new Color(1, 1, 1, 0.3f).getRGB());
     }
 
     private @NotNull Identifier getDefaultTexture() {
         return switch (mino) {
-            case "square" -> Identifier.ofVanilla("block/gold_block");
-            case "bar" -> Identifier.ofVanilla("block/diamond_block");
-            case "t" -> Identifier.ofVanilla("block/amethyst_block");
-            case "l1" -> Identifier.ofVanilla("block/copper_block");
-            case "l2" -> Identifier.ofVanilla("block/lapis_block");
-            case "z1" -> Identifier.ofVanilla("block/redstone_block");
-            case "z2" -> Identifier.ofVanilla("block/emerald_block");
-            default -> Identifier.ofVanilla("block/iron_block");
+            case "square" -> Identifier.withDefaultNamespace("block/gold_block");
+            case "bar" -> Identifier.withDefaultNamespace("block/diamond_block");
+            case "t" -> Identifier.withDefaultNamespace("block/amethyst_block");
+            case "l1" -> Identifier.withDefaultNamespace("block/copper_block");
+            case "l2" -> Identifier.withDefaultNamespace("block/lapis_block");
+            case "z1" -> Identifier.withDefaultNamespace("block/redstone_block");
+            case "z2" -> Identifier.withDefaultNamespace("block/emerald_block");
+            default -> Identifier.withDefaultNamespace("block/iron_block");
         };
     }
 }

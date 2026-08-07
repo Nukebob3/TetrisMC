@@ -2,7 +2,7 @@ package net.nukebob.tetrismc.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.nukebob.tetrismc.TetrisMC;
 
 import java.io.File;
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class TetrisConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File CONFIG_FILE = new File(MinecraftClient.getInstance().runDirectory + "/config/" + TetrisMC.MOD_ID + "/config.json");
+    private static final File CONFIG_FILE = new File(Minecraft.getInstance().gameDirectory + "/config/" + TetrisMC.MOD_ID + "/config.json");
     private static TetrisConfig config;
 
     public boolean mod_enabled = true;

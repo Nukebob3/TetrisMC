@@ -1,8 +1,8 @@
 package net.nukebob.tetrismc.game.tetris;
 
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.nukebob.tetrismc.TetrisMC;
 import net.nukebob.tetrismc.game.tetris.mino.Block;
 import net.nukebob.tetrismc.screen.TetrisScreen;
@@ -15,8 +15,8 @@ public class HardDropAnimation extends Animation{
     }
 
     @Override
-    public void draw(DrawContext context) {
+    public void draw(GuiGraphicsExtractor graphics) {
         Color color = new Color(1, 1, 1, (1 - frame * ((float) 1 / frames)) / 4);
-        context.drawTexture(RenderPipelines.GUI_TEXTURED, Identifier.of(TetrisMC.MOD_ID, "animation/hard_drop/0.png"), x + TetrisScreen.leftX - width / 2, y + TetrisScreen.topY + Block.SIZE, 0, 0, width, height, width, height, color.getRGB());
+        graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(TetrisMC.MOD_ID, "animation/hard_drop/0.png"), x + TetrisScreen.leftX - width / 2, y + TetrisScreen.topY + Block.SIZE, 0, 0, width, height, width, height, color.getRGB());
     }
 }
