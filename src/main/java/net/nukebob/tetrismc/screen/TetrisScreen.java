@@ -373,6 +373,7 @@ public class TetrisScreen extends Screen {
         if (!active) {
             //Color black = new Color(Colors.BLACK);
             //graphics.fill(left_x - 1, top_y - 1, left_x - 1 + WIDTH + 2, top_y -1 + HEIGHT + 2, new Color(black.getRed(), black.getGreen(), black.getBlue(), 0.5f).getRGB());
+            graphics.fill(leftX - 1, topY - 1, rightX+1, bottomY+1, 0xAA000000);
             super.extractRenderState(graphics, mouseX, mouseY, delta);
             if (currentMino != null) {
                 Component finalScoreText = Component.translatable(TetrisMC.MOD_ID + ":tetris.score").append(": " + score).withColor(CommonColors.SOFT_YELLOW);

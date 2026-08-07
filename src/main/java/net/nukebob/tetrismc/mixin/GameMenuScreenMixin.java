@@ -22,7 +22,7 @@ public abstract class GameMenuScreenMixin extends Screen {
     }
 
     @WrapOperation(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;addChild(Lnet/minecraft/client/gui/layouts/LayoutElement;)Lnet/minecraft/client/gui/layouts/LayoutElement;", ordinal = 3), method = "createPauseMenu")
-    private LayoutElement addMinigameButton(LinearLayout instance, LayoutElement child, Operation<LayoutElement> original) {
+    private LayoutElement tetrismc$addMinigameButton(LinearLayout instance, LayoutElement child, Operation<LayoutElement> original) {
         original.call(instance, child);
 
         if (!TetrisConfig.loadConfig().mod_enabled) return instance;
