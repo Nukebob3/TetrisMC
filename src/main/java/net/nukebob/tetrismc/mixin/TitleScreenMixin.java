@@ -21,8 +21,8 @@ public abstract class TitleScreenMixin extends Screen {
 
     @Inject(at = @At("RETURN"), method = "createNormalMenuOptions")
     private void tetrismc$addMinigameButton(int y, int spacingY, CallbackInfoReturnable<Integer> cir) {
-        SpriteIconButton textIconButtonWidget = SpriteIconButton.builder(Component.empty(), button -> this.minecraft.setScreenAndShow(new TetrisScreen(this)), true).width(20).sprite(Identifier.fromNamespaceAndPath(TetrisMC.MOD_ID, "icon/button"), 16, 16).tooltip(Component.literal("Tetris MC")).build();
-        textIconButtonWidget.setPosition(this.width / 2 - 100 + 204, y);
+        SpriteIconButton textIconButtonWidget = SpriteIconButton.builder(Component.empty(), button -> this.minecraft.setScreenAndShow(new TetrisScreen(this)), true).width(20).sprite(Identifier.fromNamespaceAndPath(TetrisMC.MOD_ID, "icon/button"), 16, 16).build();
+        textIconButtonWidget.setPosition(this.width / 2 - 100 + 204, y-spacingY);
         if (TetrisConfig.loadConfig().mod_enabled) this.addRenderableWidget(textIconButtonWidget);
     }
 
