@@ -2,6 +2,7 @@ package net.nukebob.tetrismc.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import net.minecraft.client.Minecraft;
 import net.nukebob.tetrismc.TetrisMC;
 
@@ -27,7 +28,9 @@ public class TetrisConfig {
         } else {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 config = GSON.fromJson(reader, TetrisConfig.class);
-            } catch (IOException e) {
+            } catch (JsonSyntaxException e) {
+                TetrisMC.LOGGER.error("Could not load config file: Invalid Json Syntax", e);
+            } catch (Exception e) {
                 TetrisMC.LOGGER.error("Could not load config file", e);
             }
         }

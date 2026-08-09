@@ -6,7 +6,7 @@
 	],
 	"client": [
 		"TitleScreenMixin",
-		"GameMenuScreenMixin"
+		"PauseScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

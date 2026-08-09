@@ -186,38 +186,19 @@ public class TetrisScreen extends Screen {
                     break;
             }
 
-            switch (level) {
-                case 1:
-                    dropInterval = 54;
-                    break;
-                case 2:
-                    dropInterval = 48;
-                    break;
-                case 3:
-                    dropInterval = 41;
-                    break;
-                case 4:
-                    dropInterval = 35;
-                    break;
-                case 5:
-                    dropInterval = 29;
-                    break;
-                case 6:
-                    dropInterval = 22;
-                    break;
-                case 7:
-                    dropInterval = 16;
-                    break;
-                case 8:
-                    dropInterval = 10;
-                    break;
-                case 9:
-                    dropInterval = 8;
-                    break;
-                case 10:
-                    dropInterval = 6;
-                    break;
-            }
+            dropInterval = switch (level) {
+                case 0 -> 60;
+                case 1 -> 54;
+                case 2 -> 48;
+                case 3 -> 41;
+                case 4 -> 35;
+                case 5 -> 29;
+                case 6 -> 22;
+                case 7 -> 16;
+                case 8 -> 10;
+                case 9 -> 8;
+                default -> 6; // all levels after 10
+            };
 
             for (Block b : currentMino.b) {
                 if (b.y <= Block.SIZE * 2) {
