@@ -10,7 +10,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.nukebob.tetrismc.TetrisMC;
-import net.nukebob.tetrismc.config.TetrisConfig;
 import net.nukebob.tetrismc.screen.TetrisScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,7 +24,7 @@ public abstract class GameMenuScreenMixin extends Screen {
     private LayoutElement tetrismc$addMinigameButton(LinearLayout instance, LayoutElement child, Operation<LayoutElement> original) {
         original.call(instance, child);
 
-        if (!TetrisConfig.loadConfig().mod_enabled) return instance;
+        if (!TetrisMC.CONFIG.mod_enabled) return instance;
 
         SpriteIconButton tetris = SpriteIconButton.builder(Component.empty(), (button) -> this.minecraft.setScreenAndShow(new TetrisScreen(this)), true).width(20).sprite(Identifier.fromNamespaceAndPath(TetrisMC.MOD_ID, "icon/button"), 16, 16).tooltip(Component.literal("Tetris MC")).build();
         tetris.setPosition(this.width / 2 - 100 + 203, 50);

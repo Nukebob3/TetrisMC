@@ -7,17 +7,16 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
-import net.nukebob.tetrismc.config.TetrisConfig;
+import net.minecraft.util.Mth;
+import net.nukebob.tetrismc.TetrisMC;
 import net.nukebob.tetrismc.screen.TetrisScreen;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 public class Block {
 
     public int x, y;
-    public static int SIZE = 16;
-    public Identifier texture;
+    public static final int SIZE = 16;
+    public final Identifier texture;
     public MutableComponent name;
     public String mino;
     public float destroying;
@@ -30,13 +29,13 @@ public class Block {
     }
 
     public void draw(@NotNull GuiGraphicsExtractor context) {
-        Identifier drawTexture = (TetrisConfig.loadConfig().tetris_random_textures) ? texture : getDefaultTexture();
+        Identifier drawTexture = resolveTexture();
 
-        Color color = new Color(1F, 1F, 1F, destroying == -1 ? 1 : 1 - ((int) destroying * 0.1f));
+        int color = destroying == -1 ? 0xFFFFFFFF : packAlpha(1f - ((int) destroying * 0.1f));
         TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(drawTexture);
-        context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y, Block.SIZE, Block.SIZE, color.getRGB());
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y, Block.SIZE, Block.SIZE, color);
         if ((int) destroying != -1) {
-            context.blit(RenderPipelines.GUI_TEXTURED, Identifier.parse("textures/block/destroy_stage_" + (int) destroying + ".png"), TetrisScreen.leftX + x, TetrisScreen.topY + y, 0, Block.SIZE * (int) (TetrisScreen.animation / 30f), Block.SIZE, Block.SIZE, Block.SIZE, Block.SIZE);
+            context.blit(RenderPipelines.GUI_TEXTURED, Identifier.parse("textures/block/destroy_stage_" + (int) destroying + ".png"), TetrisScreen.leftX + x, TetrisScreen.topY + y, 0, 0, Block.SIZE, Block.SIZE, Block.SIZE, Block.SIZE);
         }
 
         if (TetrisScreen.paused && TetrisScreen.active) {
@@ -50,10 +49,19 @@ public class Block {
     }
 
     public void draw(@NotNull GuiGraphicsExtractor context, int yOffset) {
-        Identifier drawTexture = (TetrisConfig.loadConfig().tetris_random_textures) ? texture : getDefaultTexture();
+        Identifier drawTexture = resolveTexture();
 
         TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(drawTexture);
-        context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y + yOffset, Block.SIZE, Block.SIZE, new Color(1, 1, 1, 0.3f).getRGB());
+        context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, TetrisScreen.leftX + x, TetrisScreen.topY + y + yOffset, Block.SIZE, Block.SIZE, 0x4CFFFFFF);
+    }
+
+    private static int packAlpha(float alpha) {
+        int a = (int) (Mth.clamp(alpha, 0, 1) * 255f) << 24;
+        return a | 0xFFFFFF;
+    }
+
+    private Identifier resolveTexture() {
+        return TetrisMC.CONFIG.tetris_random_textures ? texture : getDefaultTexture();
     }
 
     private @NotNull Identifier getDefaultTexture() {

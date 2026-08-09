@@ -68,11 +68,11 @@ public class TetrisScreen extends Screen {
     public static Mino currentMino;
     public static Mino nextMino;
 
-    private final TetrisConfig config = TetrisConfig.loadConfig();
-
     public TetrisScreen(Screen parent) {
         super(Component.nullToEmpty("Tetris Screen"));
         this.parent = parent;
+
+        TetrisMC.CONFIG = TetrisConfig.loadConfig();
 
         this.init();
     }
@@ -89,7 +89,7 @@ public class TetrisScreen extends Screen {
 
         paused = true;
 
-        hardDrop = config.tetris_hard_drop;
+        hardDrop = TetrisMC.CONFIG.tetris_hard_drop;
 
         Button returnButton = SpriteIconButton.builder(Component.empty(), button -> this.minecraft.setScreenAndShow(this.parent), true).sprite(Identifier.fromNamespaceAndPath(TetrisMC.MOD_ID, "icon/return"), 15, 15).build();
         returnButton.setTooltip(Tooltip.create(Component.translatable(TetrisMC.MOD_ID + ":game.return")));
@@ -142,7 +142,7 @@ public class TetrisScreen extends Screen {
             reset();
         }
         if (!currentMino.active) {
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("block.stone.place")), 1.5F, 5.0f * config.tetris_volume));
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("block.stone.place")), 1.5F, 5.0f * TetrisMC.CONFIG.tetris_volume));
             score += 10;
 
             staticBlocks.add(currentMino.b[0]);
@@ -178,7 +178,7 @@ public class TetrisScreen extends Screen {
                     break;
                 case 4:
                     score += 800;
-                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("entity.generic.explode")), 0.8F, 5.0f * config.tetris_volume));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("entity.generic.explode")), 0.8F, 5.0f * TetrisMC.CONFIG.tetris_volume));
                     animations.add(new Animation(this.width / 2 - width / 2, currentMino.b[2].y, width, height, "explosion", 20));
                     onScreenText = Component.translatable(TetrisMC.MOD_ID + ":tetris.tetris");
                     onScreenTextColour = 11141290;
@@ -238,7 +238,7 @@ public class TetrisScreen extends Screen {
     }
 
     private void gameOver() {
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("entity.pig.ambient")), 1.0F, 5.0f * config.tetris_volume));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("entity.pig.ambient")), 1.0F, 5.0f * TetrisMC.CONFIG.tetris_volume));
         isNewHighScore = score > HighScores.loadHighScores().tetrisHighScore;
         active = false;
     }
@@ -251,7 +251,7 @@ public class TetrisScreen extends Screen {
         if (count < GRID_X) {
             return false;
         }
-        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("block.deepslate.break")), 1.0F, 5.0f * config.tetris_volume));
+        Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvent.createVariableRangeEvent(Identifier.withDefaultNamespace("block.deepslate.break")), 1.0F, 5.0f * TetrisMC.CONFIG.tetris_volume));
         linesCleared++;
         for (Block block : staticBlocks) {
             if (block.y == y) {
