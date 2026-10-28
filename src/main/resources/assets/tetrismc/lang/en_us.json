@@ -24,5 +24,12 @@
   "tetrismc:game.start": "Start game",
   "tetrismc:game.return": "Return",
   "tetrismc:game.restart": "Restart",
-  "tetrismc:game.pause": "Pause"
+  "tetrismc:game.pause": "Pause",
+
+  "key.category.tetrismc.keybinds": "Tetris MC",
+  "key.tetrismc.right": "Right",
+  "key.tetrismc.up": "Up",
+  "key.tetrismc.left": "Left",
+  "key.tetrismc.down": "Down",
+  "key.tetrismc.hard_drop": "Hard Drop"
 }

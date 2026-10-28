@@ -1,6 +1,5 @@
 package net.nukebob.tetrismc.screen;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -378,24 +377,23 @@ public class TetrisScreen extends Screen {
 
     @Override
     public boolean keyPressed(@NotNull KeyEvent input) {
-        int keyCode = input.key();
         if (input.isEscape() && this.shouldCloseOnEsc()) {
             this.onClose();
             return true;
         } else {
-            if (input.isRight() || keyCode == InputConstants.KEY_D) {
+            if (input.isRight() || TetrisMC.RIGHT.matches(input)) {
                 rightPressed = true;
                 return true;
-            } else if (input.isUp() || keyCode == InputConstants.KEY_W) {
+            } else if (input.isUp() || TetrisMC.UP.matches(input)) {
                 upPressed = true;
                 return true;
-            } else if (input.isLeft() || keyCode == InputConstants.KEY_A) {
+            } else if (input.isLeft() || TetrisMC.LEFT.matches(input)) {
                 leftPressed = true;
                 return true;
-            } else if (input.isDown() || keyCode == InputConstants.KEY_S) {
+            } else if (input.isDown() || TetrisMC.DOWN.matches(input)) {
                 downPressed = true;
                 return true;
-            } else if (keyCode== InputConstants.KEY_SPACE) {
+            } else if (TetrisMC.DROP.matches(input)) {
                 spacePressed = true;
                 return true;
             }
